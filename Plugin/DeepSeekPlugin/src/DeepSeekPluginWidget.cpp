@@ -207,12 +207,10 @@ void DeepSeekWidget::finished(QNetworkReply::NetworkError error, int httpStatusC
     //                .arg(content)
     //                .arg(_identifier);
     // _sqlExecutor->executeNonQuery(sql);
-    auto model = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(_identifier)).first();
-    DeepSeekModel *deepSeekModel = static_cast<DeepSeekModel *>(model);
+    auto deepSeekModel = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(_identifier)).first();
     deepSeekModel->content_set(content);
     deepSeekModel->isLegal_set(true);
     deepSeekModel->Update();
-    model->deleteLater();
     if (_mainLayout->count() == 3)
     {
         // 在listWidget中第一行插入一行
@@ -248,7 +246,7 @@ void DeepSeekWidget::newChat()
     auto models = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(_identifier));
     if (models.size() == 0)
         return;
-    DeepSeekModel *model = models.first();
+    auto model = models.first();
     int isLegal = model->isLegal_get();
     if (isLegal == 0)
     {
@@ -276,14 +274,12 @@ void DeepSeekWidget::loadChat()
     auto models = DBModeHelper::Fliter<DeepSeekModel>("isLegal = 1 order by datetime desc");
     for (auto model : models)
     {
-        DeepSeekModel *deepSeekModel = static_cast<DeepSeekModel *>(model);
-        auto identifier = deepSeekModel->identifier_get();
-        auto chat_name = deepSeekModel->chat_name_get();
+        auto identifier = model->identifier_get();
+        auto chat_name = model->chat_name_get();
         QListWidgetItem *item = new QListWidgetItem();
         item->setText(chat_name);
         item->setData(Qt::UserRole, identifier);
         ui->chatListWidget->addItem(item);
-        model->deleteLater();
     }
     models.clear();
 }
@@ -310,7 +306,7 @@ void DeepSeekWidget::loadChatMessage(QListWidgetItem *item)
     _identifier = item->data(Qt::UserRole).toString();
     // auto sql = QString("SELECT chat_name,identifier,content FROM ChatMessage WHERE identifier = '%1'").arg(_identifier);
     // auto row = _sqlExecutor->executeFirstRow(sql);
-    DeepSeekModel *model = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(_identifier)).first();
+    auto model = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(_identifier)).first();
     _identifier = model->identifier_get();
     _name = model->chat_name_get();
     auto content = model->content_get();
@@ -349,7 +345,7 @@ void DeepSeekWidget::deleteChat()
             newChat();
         // auto sql = QString("Delete FROM ChatMessage WHERE identifier = '%1'").arg(identifier);
         // _sqlExecutor->executeNonQuery(sql);
-        DeepSeekModel *model = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(identifier)).first();
+        auto model = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(identifier)).first();
         model->Delete();
         model->deleteLater();
         ui->chatListWidget->removeItemWidget(item);

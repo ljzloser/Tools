@@ -26,7 +26,7 @@ public:                                                                         
 Q_SIGNALS:                                                                                          \
     void fieldName##Changed();
 
-using DBModelList = QList<DBModel *>;
+using DBModelList = QList<QSharedPointer<DBModel>>;
 class UTILITY_EXPORT DBModel : public QObject
 {
     friend class DBModeHelper;
@@ -34,8 +34,17 @@ class UTILITY_EXPORT DBModel : public QObject
 public:
     DBModel();
     ~DBModel();
+    /**
+     * @brief 插入
+     */
     void Insert();
+    /**
+     * @brief 更新
+     */
     void Update();
+    /**
+     * @brief 删除
+     */
     void Delete();
     int id_get() const { return id; }
 
@@ -47,35 +56,54 @@ private:
 class UTILITY_EXPORT DBModeHelper
 {
 public:
+    /**
+     * @brief 更新模型，但是不会更新传入的模型对象本身
+     * @param models
+     */
     static void UpdateModels(DBModelList models);
+    /**
+     * @brief 插入模型，但是不会更新传入的模型对象本身
+     */
     static void InsertModels(DBModelList models);
+    /**
+     * @brief 删除模型，但是不会更新传入的模型对象本身
+     */
     static void DeleteModels(DBModelList models);
-    // 模板函数
+    /**
+     * @brief 根据条件过滤模型
+     * @tparam Model DBModel 的子类
+     * @param limit 条件
+     * @return 返回过滤后的模型
+     */
     template <typename Model>
-    static QList<Model *> Fliter(QString limit)
+    static QList<QSharedPointer<Model>> Fliter(QString limit)
     {
         // 判断Model 是否 是 DBModel 的子类
         static_assert(std::is_base_of<DBModel, Model>::value, "Model must be a subclass of DBModel");
-        QList<Model *> models;
+        QList<QSharedPointer<Model>> models;
         LSqlExecutor excuteSql(QApplication::applicationDirPath() + "/config.db");
         QString tableName = Model().metaObject()->className();
         QString sql = QString("SELECT * FROM %1 WHERE %2").arg(tableName).arg(limit);
         auto rows = excuteSql.executeQuery(sql);
         for (auto row : rows)
         {
-            Model *model = new Model();
+            auto model = QSharedPointer<Model>(new Model());
             model->id_set(row["id"].toInt());
             for (int i = 0; i < model->metaObject()->propertyCount(); i++)
             {
                 auto prop = model->metaObject()->property(i);
                 auto field = prop.name();
                 auto value = row[field];
-                prop.write(model, value);
+                prop.write(model.data(), value);
             }
             models.append(model);
         }
         return models;
     }
+    /**
+     * @brief 创建表
+     * @tparam Model DBModel 的子类
+     */
     template <typename Model>
     static void Create()
     {
@@ -131,7 +159,17 @@ public:
                           .arg(fields.join(","));
         excuteSql.executeNonQuery(sql);
     }
-
+    /**
+     * @brief 将 QVariant 转换为字符串，用于数据库存储
+     * @param value 值
+     * @param type 类型
+     * @return 字符串
+     */
     static QString valueToString(const QVariant &value, QVariant::Type type);
+    /**
+     * @brief 添加引号
+     * @param value
+     * @return 字符串
+     */
     static QString addQuotes(const QString &value);
 };
