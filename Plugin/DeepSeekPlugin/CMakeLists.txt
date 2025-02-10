@@ -39,17 +39,17 @@ add_library(DeepSeekPlugin SHARED
 )
 
 target_link_libraries(DeepSeekPlugin PRIVATE Qt${QT_VERSION_MAJOR}::Core
-  LWidget
-  LCore
-  spdlog
-  Utility
-  DeepSeek
+
   Qt${QT_VERSION_MAJOR}::Network
   Qt${QT_VERSION_MAJOR}::Sql
   Qt${QT_VERSION_MAJOR}::Xml
   # Qt${QT_VERSION_MAJOR}::WebEngineWidgets
   Qt${QT_VERSION_MAJOR}::Widgets
-  
+  LWidget
+  LCore
+  spdlog
+  Utility
+  DeepSeek
 )
 
 target_compile_definitions(DeepSeekPlugin PRIVATE DeepSeekPlugin_LIBRARY)

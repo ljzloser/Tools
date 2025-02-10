@@ -44,5 +44,5 @@ private:
     void showListWidgetContextMenu(const QPoint &pos);
     void loadChatMessage(QListWidgetItem *item);
     void deleteChat();
-    LSqlExecutor *_sqlExecutor = new LSqlExecutor(QApplication::applicationDirPath() + "/config.db");
+    // LSqlExecutor *_sqlExecutor = new LSqlExecutor(QApplication::applicationDirPath() + "/config.db");
 };

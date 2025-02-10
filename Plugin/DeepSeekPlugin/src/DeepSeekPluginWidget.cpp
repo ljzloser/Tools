@@ -8,11 +8,13 @@
 #include <QMenu>
 #include <QAction>
 #include <QUuid>
+#include "DeepSeekModel.h"
 DeepSeekWidget::DeepSeekWidget(Logger *logger, TConfig *config, QWidget *parent)
     : QWidget(parent), ui(new Ui::DeepSeekPluginWidget()), _config(config), _logger(logger)
 {
-    _sqlExecutor->executeNonQuery(R"(CREATE TABLE IF NOT EXISTS ChatMessage 
-        (id INTEGER PRIMARY KEY AUTOINCREMENT,identifier TEXT, datetime TEXT, chat_name TEXT, content TEXT, isLegal INTEGER);)");
+    // _sqlExecutor->executeNonQuery(R"(CREATE TABLE IF NOT EXISTS ChatMessage
+    //     (id INTEGER PRIMARY KEY AUTOINCREMENT,identifier TEXT, datetime TEXT, chat_name TEXT, content TEXT, isLegal INTEGER);)");
+    DBModeHelper::Create<DeepSeekModel>();
     ui->setupUi(this);
     deepSeek = new DeepSeek(_config->read("token").valueString(), this);
     deepSeek->setSystemMessage(_config->read("system_messages").valueString());
@@ -31,7 +33,7 @@ DeepSeekWidget::DeepSeekWidget(Logger *logger, TConfig *config, QWidget *parent)
 DeepSeekWidget::~DeepSeekWidget()
 {
     delete ui;
-    delete _sqlExecutor;
+    // delete _sqlExecutor;
 }
 void DeepSeekWidget::setParmas(QString key, QVariant value)
 {
@@ -136,11 +138,17 @@ void DeepSeekWidget::keyPressEvent(QKeyEvent *event)
         {
             _identifier = QUuid::createUuid().toString();
             _name = text.size() > 10 ? text.left(10) + "..." : text;
-            auto sql = QString("INSERT INTO ChatMessage (identifier, datetime, chat_name, isLegal) VALUES ('%1', '%2', '%3', 0)")
-                           .arg(_identifier)
-                           .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
-                           .arg(_name);
-            _sqlExecutor->executeNonQuery(sql);
+            // auto sql = QString("INSERT INTO ChatMessage (identifier, datetime, chat_name, isLegal) VALUES ('%1', '%2', '%3', 0)")
+            //                .arg(_identifier)
+            //                .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
+            //                .arg(_name);
+            // _sqlExecutor->executeNonQuery(sql);
+            DeepSeekModel model;
+            model.identifier_set(_identifier);
+            model.datetime_set(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+            model.chat_name_set(_name);
+            model.isLegal_set(false);
+            model.Insert();
         }
     }
 }
@@ -195,10 +203,16 @@ void DeepSeekWidget::finished(QNetworkReply::NetworkError error, int httpStatusC
     }
     QJsonDocument doc(array);
     QString content = doc.toJson(QJsonDocument::Compact);
-    auto sql = QString("UPDATE ChatMessage SET content = '%1', isLegal = 1 WHERE identifier = '%2'")
-                   .arg(content)
-                   .arg(_identifier);
-    _sqlExecutor->executeNonQuery(sql);
+    // auto sql = QString("UPDATE ChatMessage SET content = '%1', isLegal = 1 WHERE identifier = '%2'")
+    //                .arg(content)
+    //                .arg(_identifier);
+    // _sqlExecutor->executeNonQuery(sql);
+    auto model = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(_identifier)).first();
+    DeepSeekModel *deepSeekModel = static_cast<DeepSeekModel *>(model);
+    deepSeekModel->content_set(content);
+    deepSeekModel->isLegal_set(true);
+    deepSeekModel->Update();
+    model->deleteLater();
     if (_mainLayout->count() == 3)
     {
         // 在listWidget中第一行插入一行
@@ -229,12 +243,18 @@ QList<DeepSeek::Message> DeepSeekWidget::oldMessage()
 void DeepSeekWidget::newChat()
 {
     // 判断当前的对话是否合法
-    auto sql = QString("SELECT isLegal FROM ChatMessage WHERE identifier = '%1'").arg(_identifier);
-    int isLegal = _sqlExecutor->executeScalar<int>(sql);
+    // auto sql = QString("SELECT isLegal FROM ChatMessage WHERE identifier = '%1'").arg(_identifier);
+    // int isLegal = _sqlExecutor->executeScalar<int>(sql);
+    auto models = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(_identifier));
+    if (models.size() == 0)
+        return;
+    DeepSeekModel *model = models.first();
+    int isLegal = model->isLegal_get();
     if (isLegal == 0)
     {
-        sql = QString("Delete FROM ChatMessage WHERE identifier = '%1'").arg(_identifier);
-        _sqlExecutor->executeNonQuery(sql);
+        // sql = QString("Delete FROM ChatMessage WHERE identifier = '%1'").arg(_identifier);
+        // _sqlExecutor->executeNonQuery(sql);
+        model->Delete();
     }
     while (_mainLayout->count() > 1)
     {
@@ -245,23 +265,27 @@ void DeepSeekWidget::newChat()
             delete chatFrame;
         }
     }
+    model->deleteLater();
 }
 
 void DeepSeekWidget::loadChat()
 {
     ui->chatListWidget->clear();
-    auto sql = QString("SELECT chat_name,identifier FROM ChatMessage where isLegal = 1 order by datetime desc");
-    auto rows = _sqlExecutor->executeQuery(sql);
-    for (int i = 0; i < rows.size(); ++i)
+    // auto sql = QString("SELECT chat_name,identifier FROM ChatMessage where isLegal = 1 order by datetime desc");
+    // auto rows = _sqlExecutor->executeQuery(sql);
+    auto models = DBModeHelper::Fliter<DeepSeekModel>("isLegal = 1 order by datetime desc");
+    for (auto model : models)
     {
-        auto row = rows.at(i);
-        auto identifier = row.value("identifier").toString();
-        auto chat_name = row.value("chat_name").toString();
+        DeepSeekModel *deepSeekModel = static_cast<DeepSeekModel *>(model);
+        auto identifier = deepSeekModel->identifier_get();
+        auto chat_name = deepSeekModel->chat_name_get();
         QListWidgetItem *item = new QListWidgetItem();
         item->setText(chat_name);
         item->setData(Qt::UserRole, identifier);
         ui->chatListWidget->addItem(item);
+        model->deleteLater();
     }
+    models.clear();
 }
 
 void DeepSeekWidget::showContextMenu(const QPoint &pos)
@@ -284,11 +308,12 @@ void DeepSeekWidget::loadChatMessage(QListWidgetItem *item)
 {
     this->newChat();
     _identifier = item->data(Qt::UserRole).toString();
-    auto sql = QString("SELECT chat_name,identifier,content FROM ChatMessage WHERE identifier = '%1'").arg(_identifier);
-    auto row = _sqlExecutor->executeFirstRow(sql);
-    _identifier = row.value("identifier").toString();
-    _name = row.value("chat_name").toString();
-    auto content = row.value("content").toString();
+    // auto sql = QString("SELECT chat_name,identifier,content FROM ChatMessage WHERE identifier = '%1'").arg(_identifier);
+    // auto row = _sqlExecutor->executeFirstRow(sql);
+    DeepSeekModel *model = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(_identifier)).first();
+    _identifier = model->identifier_get();
+    _name = model->chat_name_get();
+    auto content = model->content_get();
     auto doc = QJsonDocument::fromJson(content.toUtf8());
     auto array = doc.array();
     for (auto row : array)
@@ -322,8 +347,11 @@ void DeepSeekWidget::deleteChat()
         auto identifier = item->data(Qt::UserRole).toString();
         if (identifier == _identifier)
             newChat();
-        auto sql = QString("Delete FROM ChatMessage WHERE identifier = '%1'").arg(identifier);
-        _sqlExecutor->executeNonQuery(sql);
+        // auto sql = QString("Delete FROM ChatMessage WHERE identifier = '%1'").arg(identifier);
+        // _sqlExecutor->executeNonQuery(sql);
+        DeepSeekModel *model = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(identifier)).first();
+        model->Delete();
+        model->deleteLater();
         ui->chatListWidget->removeItemWidget(item);
         delete item;
     }
