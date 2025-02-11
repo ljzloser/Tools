@@ -40,7 +40,7 @@ Q_SIGNALS:                                                                      
 using DBModelList = QList<QSharedPointer<DBModel>>;
 class UTILITY_EXPORT DBModel : public QObject
 {
-    friend class DBModeHelper;
+    friend class DBModelHelper;
     Q_OBJECT
 public:
 public:
@@ -69,7 +69,7 @@ private:
     void id_set(int value) { id = value; }
 };
 
-class UTILITY_EXPORT DBModeHelper
+class UTILITY_EXPORT DBModelHelper
 {
 public:
     /**
@@ -95,7 +95,7 @@ public:
     static QList<QSharedPointer<Model>> Fliter(QString limit)
     {
         // 判断Model 是否 是 DBModel 的子类
-        static_assert(std::is_base_of<DBModel, Model>::value, "Model must be a subclass of DBModel");
+        DBModelHelper::verifyModel<Model>();
         QList<QSharedPointer<Model>> models;
         LSqlExecutor excuteSql(QApplication::applicationDirPath() + "/config.db");
         QString tableName = Model().metaObject()->className();
@@ -124,7 +124,7 @@ public:
     static void Create()
     {
         // 判断Model 是否 是 DBModel 的子类
-        static_assert(std::is_base_of<DBModel, Model>::value, "Model must be a subclass of DBModel");
+        DBModelHelper::verifyModel<Model>();
         LSqlExecutor excuteSql(QApplication::applicationDirPath() + "/config.db");
         const QMetaObject *obj = Model().metaObject();
         QString tableName = obj->className();
@@ -177,7 +177,7 @@ public:
     template <typename Model>
     static QJsonObject ToJsonObject(QSharedPointer<Model> model)
     {
-        static_assert(std::is_base_of<DBModel, Model>::value, "Model must be a subclass of DBModel");
+        DBModelHelper::verifyModel<Model>();
         QJsonObject obj;
         const QMetaObject *metaObject = model->metaObject();
         for (int i = 0; i < metaObject->propertyCount(); i++)
@@ -192,7 +192,7 @@ public:
     template <typename Model>
     static QSharedPointer<Model> FromJsonObject(QJsonObject obj)
     {
-        static_assert(std::is_base_of<DBModel, Model>::value, "Model must be a subclass of DBModel");
+        DBModelHelper::verifyModel<Model>();
         QPointer<Model> model(new Model());
         const QMetaObject *metaObject = model->metaObject();
         for (int i = 0; i < metaObject->propertyCount(); i++)
@@ -223,5 +223,53 @@ public:
             array.append(ToJsonObject<Model>(model));
         }
         return array;
+    }
+    /**
+     * @brief 设置值
+     * @tparam Model DBModel 的子类
+     * @param model 模型
+     * @param fieldName 字段
+     * @param value 值
+     * @return 是否设置成功
+     */
+    template <typename Model>
+    static bool SetValue(QSharedPointer<Model> model, const QString &fieldName, const QVariant &value)
+    {
+        DBModelHelper::verifyModel<Model>();
+        const QMetaObject *metaObject = model->metaObject();
+        // 判断字段是否存在
+        auto prop = metaObject->property(metaObject->indexOfProperty(fieldName));
+        if (!prop.isValid())
+            return false;
+        prop.write(model.data(), value);
+        return true;
+    }
+    /**
+     * @brief 获取值
+     * @tparam Model DBModel 的子类
+     * @param model 模型
+     * @param fieldName 字段
+     * @return 值
+     */
+    template <typename Model>
+    static QVariant GetValue(QSharedPointer<Model> model, const QString &fieldName)
+    {
+        DBModelHelper::verifyModel<Model>();
+        const QMetaObject *metaObject = model->metaObject();
+        // 判断字段是否存在
+        auto prop = metaObject->property(metaObject->indexOfProperty(fieldName));
+        if (!prop.isValid())
+            return QVariant();
+        return prop.read(model.data());
+    }
+
+    /**
+     * @brief 检查模型是否是DBModel的子类
+     * @tparam Model DBModel 的子类
+     */
+    template <typename Model>
+    static void verifyModel()
+    {
+        static_assert(std::is_base_of<DBModel, Model>::value, "Model must be a subclass of DBModel");
     }
 };

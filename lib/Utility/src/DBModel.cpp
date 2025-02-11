@@ -27,7 +27,7 @@ void DBModel::Insert()
         auto prop = obj->property(i);
         auto field = prop.name();
         auto value = prop.read(this);
-        auto valueString = DBModeHelper::valueToString(value, prop.type());
+        auto valueString = DBModelHelper::valueToString(value, prop.type());
         fields.append(field);
         values.append(valueString);
     }
@@ -51,7 +51,7 @@ void DBModel::Update()
     {
         QString fieldName = obj->property(i).name();
         QVariant value = obj->property(i).read(this);
-        auto valueString = DBModeHelper::valueToString(value, obj->property(i).type());
+        auto valueString = DBModelHelper::valueToString(value, obj->property(i).type());
         setStrings.append(QString("%1 = %2").arg(fieldName).arg(valueString));
     }
     QString sql = QString("UPDATE %1 SET %2 WHERE id = %3").arg(tableName).arg(setStrings.join(",")).arg(this->id);
@@ -91,7 +91,7 @@ void DBModel::Load()
     }
 }
 
-void DBModeHelper::DeleteModels(DBModelList models)
+void DBModelHelper::DeleteModels(DBModelList models)
 {
     if (models.size() == 0)
         return;
@@ -107,7 +107,7 @@ void DBModeHelper::DeleteModels(DBModelList models)
     excuteSql.executeNonQuery(sql);
 }
 
-void DBModeHelper::UpdateModels(DBModelList models)
+void DBModelHelper::UpdateModels(DBModelList models)
 {
     if (models.size() == 0)
         return;
@@ -117,7 +117,7 @@ void DBModeHelper::UpdateModels(DBModelList models)
     }
 }
 
-void DBModeHelper::InsertModels(DBModelList models)
+void DBModelHelper::InsertModels(DBModelList models)
 {
     if (models.size() == 0)
         return;
@@ -127,7 +127,7 @@ void DBModeHelper::InsertModels(DBModelList models)
     }
 }
 
-QString DBModeHelper::valueToString(const QVariant &value, QVariant::Type type)
+QString DBModelHelper::valueToString(const QVariant &value, QVariant::Type type)
 {
     switch (type)
     {
@@ -136,18 +136,18 @@ QString DBModeHelper::valueToString(const QVariant &value, QVariant::Type type)
     case QVariant::Double:
         return QString::number(value.toDouble());
     case QVariant::String:
-        return DBModeHelper::addQuotes(value.toString());
+        return DBModelHelper::addQuotes(value.toString());
     case QVariant::ByteArray:
     {
         QString Six = value.toByteArray().toHex();
-        return "X" + DBModeHelper::addQuotes(Six);
+        return "X" + DBModelHelper::addQuotes(Six);
     }
     default:
         return "NULL";
     }
 }
 
-QString DBModeHelper::addQuotes(const QString &value)
+QString DBModelHelper::addQuotes(const QString &value)
 {
     return "'" + value + "'";
 }

@@ -13,7 +13,7 @@
 DeepSeekWidget::DeepSeekWidget(Logger *logger, TConfig *config, QWidget *parent)
     : QWidget(parent), ui(new Ui::DeepSeekPluginWidget()), _config(config), _logger(logger)
 {
-    DBModeHelper::Create<DeepSeekModel>();
+    DBModelHelper::Create<DeepSeekModel>();
     ui->setupUi(this);
     deepSeek = new DeepSeek(_config->read("token").valueString(), this);
     deepSeek->setSystemMessage(_config->read("system_messages").valueString());
@@ -205,7 +205,7 @@ void DeepSeekWidget::finished(QNetworkReply::NetworkError error, int httpStatusC
     }
     QJsonDocument doc(array);
     QString content = doc.toJson(QJsonDocument::Compact);
-    auto deepSeekModel = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(_identifier)).first();
+    auto deepSeekModel = DBModelHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(_identifier)).first();
     deepSeekModel->content_set(content);
     deepSeekModel->isLegal_set(true);
     deepSeekModel->Update();
@@ -245,7 +245,7 @@ void DeepSeekWidget::newChat()
     deepSeek->stopRequest();
 
     // 判断当前的对话是否合法
-    auto models = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(_identifier));
+    auto models = DBModelHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(_identifier));
     if (models.size() == 0)
         return;
     auto model = models.first();
@@ -269,7 +269,7 @@ void DeepSeekWidget::newChat()
 void DeepSeekWidget::loadChat()
 {
     ui->chatListWidget->clear();
-    auto models = DBModeHelper::Fliter<DeepSeekModel>("isLegal = 1 order by datetime desc");
+    auto models = DBModelHelper::Fliter<DeepSeekModel>("isLegal = 1 order by datetime desc");
     for (auto model : models)
     {
         auto identifier = model->identifier_get();
@@ -307,7 +307,7 @@ void DeepSeekWidget::loadChatMessage(QListWidgetItem *item)
 {
     this->newChat();
     _identifier = item->data(Qt::UserRole).toString();
-    auto model = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(_identifier)).first();
+    auto model = DBModelHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(_identifier)).first();
     _identifier = model->identifier_get();
     _name = model->chat_name_get();
     auto content = model->content_get();
@@ -346,7 +346,7 @@ void DeepSeekWidget::deleteChat()
         auto identifier = item->data(Qt::UserRole).toString();
         if (identifier == _identifier)
             newChat();
-        auto model = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(identifier)).first();
+        auto model = DBModelHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(identifier)).first();
         model->Delete();
         model->deleteLater();
         ui->chatListWidget->removeItemWidget(item);
@@ -380,12 +380,12 @@ void DeepSeekWidget::exportChat()
     QStringList limits;
     for (auto item : items)
     {
-        limits.append(DBModeHelper::addQuotes(item->data(Qt::UserRole).toString()));
+        limits.append(DBModelHelper::addQuotes(item->data(Qt::UserRole).toString()));
     }
-    auto models = DBModeHelper::Fliter<DeepSeekModel>(QString("identifier in (%1)").arg(limits.join(",")));
+    auto models = DBModelHelper::Fliter<DeepSeekModel>(QString("identifier in (%1)").arg(limits.join(",")));
     if (models.size() == 0)
         return;
-    auto array = DBModeHelper::ToJsonArray(models);
+    auto array = DBModelHelper::ToJsonArray(models);
     auto doc = QJsonDocument(array);
     auto json = doc.toJson();
     auto fileName = QFileDialog::getSaveFileName(this, "导出聊天内容", QApplication::applicationDirPath() + "/chats.json", "JSON(*.json)");
