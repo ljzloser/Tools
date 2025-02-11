@@ -35,7 +35,8 @@ Q_SIGNALS:                                                                      
 #define ADD_INTEGER_PROPERTY(fieldName) ADD_PROPERTY(int, fieldName)
 #define ADD_REAL_PROPERTY(fieldName) ADD_PROPERTY(double, fieldName)
 #define ADD_BLOB_PROPERTY(fieldName) ADD_PROPERTY(QByteArray, fieldName)
-
+#define ADD_DBModel_PROPERTY(fieldName) ""
+#define ADD_DBModel_LIST_PROPERTY(fieldName) ""
 using DBModelList = QList<QSharedPointer<DBModel>>;
 class UTILITY_EXPORT DBModel : public QObject
 {
