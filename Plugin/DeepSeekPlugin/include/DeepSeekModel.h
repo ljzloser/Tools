@@ -10,9 +10,9 @@ public:
     ~DeepSeekModel();
 
 public:
-    ADD_PROPERTY(QString, identifier)
-    ADD_PROPERTY(QString, datetime)
-    ADD_PROPERTY(QString, chat_name)
-    ADD_PROPERTY(bool, isLegal)
-    ADD_PROPERTY(QString, content)
+    ADD_TEXT_PROPERTY(identifier)
+    ADD_TEXT_PROPERTY(datetime)
+    ADD_TEXT_PROPERTY(chat_name)
+    ADD_INTEGER_PROPERTY(isLegal)
+    ADD_TEXT_PROPERTY(content)
 };

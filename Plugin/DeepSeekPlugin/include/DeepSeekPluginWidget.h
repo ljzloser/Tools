@@ -19,12 +19,10 @@ public:
     DeepSeekWidget(Logger *logger, TConfig *config, QWidget *parent = nullptr);
     ~DeepSeekWidget();
 
-public:
+public slots:
     void setParmas(QString key, QVariant value);
 
 private:
-    void initUi();
-    void initConnect();
     Ui::DeepSeekPluginWidget *ui;
     TConfig *_config;
     Logger *_logger;
@@ -33,16 +31,24 @@ private:
     QWidget *_mainWidget = new QWidget(this);
     QVBoxLayout *_mainLayout = new QVBoxLayout(_mainWidget);
     DeepSeek *deepSeek = nullptr;
+    QTimer *_timer = new QTimer(this);
+
+private:
+    void initUi();
+    void initConnect();
     virtual void keyPressEvent(QKeyEvent *event) override;
+    QList<DeepSeek::Message> oldMessage();
+    ChatFrame *lastChatFrame();
+private slots:
     void addLastMessage(const DeepSeek::Message &message);
     void finished(QNetworkReply::NetworkError error, int httpStatusCode, const QString &errorString);
-    QList<DeepSeek::Message> oldMessage();
-    QWidget *_spacer = nullptr;
     void newChat();
     void loadChat();
     void showContextMenu(const QPoint &pos);
     void showListWidgetContextMenu(const QPoint &pos);
     void loadChatMessage(QListWidgetItem *item);
     void deleteChat();
-    // LSqlExecutor *_sqlExecutor = new LSqlExecutor(QApplication::applicationDirPath() + "/config.db");
+    void rollLast();
+    void updateBalance(DeepSeek::Balance balance);
+    void exportChat();
 };

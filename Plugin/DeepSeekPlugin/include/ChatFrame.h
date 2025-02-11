@@ -10,9 +10,6 @@
 #include <QWidget>
 #include <QPlainTextEdit>
 #include <QMovie>
-// #include <QWebEnginePage>
-// #include <QWebEngineView>
-// #include <QWebChannel>
 
 enum class Role
 {
@@ -91,6 +88,9 @@ public slots:
     void setDateTime(const QString &dateTime);
     void setErrorText(const QString &text);
 
+signals:
+    void stopRequestSignal();
+
 private:
     void initUi();
     void initConnect();
@@ -108,20 +108,9 @@ private:
     QLabel *_tokenLabel = new QLabel(this);
     QLabel *_loadingLabel = new QLabel(this);
     QMovie *_movie = new QMovie(":/res/icon/loading.gif");
+    QPushButton *_stopButton = new QPushButton(this);
     int _tokenSize = 0;
     QString _dateTime;
     QLabel *_dateTimeLabel = new QLabel(this);
     QLabel *_errorLabel = new QLabel(this);
-    // QWebEngineView *_reasonerView = nullptr;
-
-    // QWebEngineView *_chatView = nullptr;
-
-    // PreviewPage *_reasonerPage = nullptr;
-
-    // PreviewPage *_chatPage = nullptr;
-
-    // QWebChannel *_reasonerChannel = new QWebChannel();
-    // QWebChannel *_chatChannel = new QWebChannel();
-    // Document _reasonerDocument;
-    // Document _chatDocument
 };

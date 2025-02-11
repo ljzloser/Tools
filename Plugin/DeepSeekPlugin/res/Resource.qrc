@@ -6,5 +6,6 @@
         <file>icon/copy.png</file>
         <file>icon/save.png</file>
         <file>icon/loading.gif</file>
+        <file>icon/stop.png</file>
     </qresource>
 </RCC>

@@ -78,12 +78,14 @@ void ChatFrame::setTokenSize(int size)
 void ChatFrame::startLoading()
 {
     _loadingLabel->show();
+    _stopButton->show();
     _movie->start();
 }
 
 void ChatFrame::stopLoading()
 {
     _loadingLabel->hide();
+    _stopButton->hide();
     _movie->stop();
 }
 
@@ -102,20 +104,6 @@ void ChatFrame::initUi()
 {
     // 设置边框
     this->setFrameShape(QFrame::StyledPanel);
-    // this->_reasonerView = new QWebEngineView();
-    // this->_chatView = new QWebEngineView();
-    // this->_reasonerPage = new PreviewPage();
-    // this->_chatPage = new PreviewPage();
-    // this->_reasonerChannel = new QWebChannel();
-    // this->_chatChannel = new QWebChannel();
-    // this->_reasonerView->setContextMenuPolicy(Qt::NoContextMenu);
-    // this->_reasonerView->setPage(this->_reasonerPage);
-    // this->_reasonerView->setUrl(QUrl("qrc:/res/html/index.html"));
-    // this->_chatView->setContextMenuPolicy(Qt::NoContextMenu);
-    // this->_chatView->setPage(this->_chatPage);
-    // this->_chatView->setUrl(QUrl("qrc:/res/html/index.html"));
-    // this->_reasonerChannel->registerObject(QStringLiteral("content"), &_reasonerDocument);
-    // this->_chatChannel->registerObject(QStringLiteral("content"), &_chatDocument);
     QVBoxLayout *_layout = new QVBoxLayout();
     QHBoxLayout *_roleLayout = new QHBoxLayout();
     _copyButton->setFixedSize(25, 25);
@@ -131,6 +119,10 @@ void ChatFrame::initUi()
     _loadingLabel->setMovie(_movie);
     _loadingLabel->hide();
     _loadingLabel->setAlignment(Qt::AlignCenter);
+    _stopButton->setFixedSize(25, 25);
+    _stopButton->setIcon(QIcon(":/res/icon/stop.png"));
+    _stopButton->setToolTip("停止");
+    _stopButton->hide();
     _dateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
     _dateTimeLabel->setText(_dateTime);
     _errorLabel->setAlignment(Qt::AlignCenter);
@@ -142,6 +134,7 @@ void ChatFrame::initUi()
         _roleLayout->addWidget(_dateTimeLabel);
         _roleLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
         _roleLayout->addWidget(_errorLabel);
+        _roleLayout->addWidget(_stopButton);
         _roleLayout->addWidget(_loadingLabel);
         _roleLayout->addWidget(_tokenLabel);
         _roleLayout->addWidget(_copyButton);
@@ -155,6 +148,7 @@ void ChatFrame::initUi()
         _roleLayout->addWidget(_copyButton);
         _roleLayout->addWidget(_saveButton);
         _roleLayout->addWidget(_loadingLabel);
+        _roleLayout->addWidget(_stopButton);
         _roleLayout->addWidget(_tokenLabel);
         _roleLayout->addWidget(_errorLabel);
         _roleLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
@@ -210,4 +204,6 @@ void ChatFrame::initConnect()
                 file.close();
             }
         } });
+    connect(_stopButton, &QPushButton::clicked, [=]()
+            { emit stopRequestSignal(); });
 }

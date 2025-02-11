@@ -19,7 +19,7 @@ public:
         Balance() {};
         QString toString()
         {
-            return QString("is_available: %1\ncurrency: %2\ntotal_balance: %3\ngranted_balance: %4\ntopped_up_balance: %5")
+            return QString("is_available: %1 currency: %2 total_balance: %3 granted_balance: %4 topped_up_balance: %5")
                 .arg(is_available)
                 .arg(currency)
                 .arg(total_balance)

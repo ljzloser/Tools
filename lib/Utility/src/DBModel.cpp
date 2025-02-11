@@ -69,6 +69,28 @@ void DBModel::Delete()
     excuteSql.executeNonQuery(sql);
 }
 
+void DBModel::Load()
+{
+    if (this->id_get() == 0)
+        return;
+    LSqlExecutor excuteSql(QApplication::applicationDirPath() + "/config.db");
+    auto obj = this->metaObject();
+    QString tableName = obj->className();
+    QString sql = QString("SELECT * FROM %1 WHERE id = %2").arg(tableName).arg(this->id_get());
+    auto rows = excuteSql.executeQuery(sql);
+    if (rows.size() == 0)
+        return;
+    auto row = rows.first();
+
+    for (int i = 0; i < obj->propertyCount(); i++)
+    {
+        auto prop = obj->property(i);
+        auto field = prop.name();
+        auto value = row[field];
+        prop.write(this, value);
+    }
+}
+
 void DBModeHelper::DeleteModels(DBModelList models)
 {
     if (models.size() == 0)
@@ -110,59 +132,15 @@ QString DBModeHelper::valueToString(const QVariant &value, QVariant::Type type)
     switch (type)
     {
     case QVariant::Int:
-    case QVariant::UInt:
-    case QVariant::ULongLong:
-    case QVariant::LongLong:
         return QString::number(value.toInt());
     case QVariant::Double:
         return QString::number(value.toDouble());
-    case QVariant::Bool:
-        return QString::number(value.toBool());
-    case QVariant::Date:
-        return DBModeHelper::addQuotes(value.toDate().toString("yyyy-MM-dd"));
-    case QVariant::Time:
-        return DBModeHelper::addQuotes(value.toTime().toString("hh:mm:ss"));
-    case QVariant::DateTime:
-        return DBModeHelper::addQuotes(value.toDateTime().toString("yyyy-MM-dd hh:mm:ss"));
     case QVariant::String:
         return DBModeHelper::addQuotes(value.toString());
     case QVariant::ByteArray:
     {
         QString Six = value.toByteArray().toHex();
         return "X" + DBModeHelper::addQuotes(Six);
-    }
-    case QVariant::BitArray:
-    {
-        QByteArray byteArray;
-        QBitArray bitArray = value.toBitArray();
-        // 将QBitArray的每8个比特转为一个字节并添加到QByteArray中
-        for (int i = 0; i < bitArray.size(); i += 8)
-        {
-            uchar byte = 0;
-
-            // 每8个位构成一个字节
-            for (int j = 0; j < 8 && i + j < bitArray.size(); ++j)
-            {
-                byte |= (bitArray[i + j] << (7 - j)); // 从左到右设置比特
-            }
-
-            byteArray.append(byte); // 将字节加入QByteArray
-        }
-        QString Six = byteArray.toHex();
-        return "X" + DBModeHelper::addQuotes(Six);
-    }
-    case QVariant::Char:
-        return DBModeHelper::addQuotes(value.toString());
-    case QVariant::StringList:
-        return DBModeHelper::addQuotes(value.toStringList().join(","));
-    case QVariant::List:
-        return DBModeHelper::addQuotes(value.toStringList().join(","));
-    case QVariant::Map:
-    {
-        auto map = value.toMap();
-        auto obj = QJsonObject::fromVariantMap(map);
-        auto json = QJsonDocument(obj).toJson(QJsonDocument::Compact);
-        return DBModeHelper::addQuotes(json);
     }
     default:
         return "NULL";

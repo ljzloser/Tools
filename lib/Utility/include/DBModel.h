@@ -6,6 +6,11 @@
 #include <QMetaProperty>
 #include <LCore>
 #include "Utility_global.h"
+#include <qmetatype.h>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+
 class UTILITY_EXPORT DBModel;
 
 #define ADD_PROPERTY(type, fieldName)                                                               \
@@ -26,11 +31,17 @@ public:                                                                         
 Q_SIGNALS:                                                                                          \
     void fieldName##Changed();
 
+#define ADD_TEXT_PROPERTY(fieldName) ADD_PROPERTY(QString, fieldName)
+#define ADD_INTEGER_PROPERTY(fieldName) ADD_PROPERTY(int, fieldName)
+#define ADD_REAL_PROPERTY(fieldName) ADD_PROPERTY(double, fieldName)
+#define ADD_BLOB_PROPERTY(fieldName) ADD_PROPERTY(QByteArray, fieldName)
+
 using DBModelList = QList<QSharedPointer<DBModel>>;
 class UTILITY_EXPORT DBModel : public QObject
 {
     friend class DBModeHelper;
     Q_OBJECT
+public:
 public:
     DBModel();
     ~DBModel();
@@ -46,6 +57,10 @@ public:
      * @brief 删除
      */
     void Delete();
+    /**
+     * @brief 加载
+     */
+    void Load();
     int id_get() const { return id; }
 
 private:
@@ -57,16 +72,16 @@ class UTILITY_EXPORT DBModeHelper
 {
 public:
     /**
-     * @brief 更新模型，但是不会更新传入的模型对象本身
+     * @brief 更新模型
      * @param models
      */
     static void UpdateModels(DBModelList models);
     /**
-     * @brief 插入模型，但是不会更新传入的模型对象本身
+     * @brief 插入模型
      */
     static void InsertModels(DBModelList models);
     /**
-     * @brief 删除模型，但是不会更新传入的模型对象本身
+     * @brief 删除模型
      */
     static void DeleteModels(DBModelList models);
     /**
@@ -110,7 +125,7 @@ public:
         // 判断Model 是否 是 DBModel 的子类
         static_assert(std::is_base_of<DBModel, Model>::value, "Model must be a subclass of DBModel");
         LSqlExecutor excuteSql(QApplication::applicationDirPath() + "/config.db");
-        auto obj = Model().metaObject();
+        const QMetaObject *obj = Model().metaObject();
         QString tableName = obj->className();
         QStringList fields;
         for (int i = 0; i < obj->propertyCount(); i++)
@@ -122,30 +137,16 @@ public:
             QString fieldType;
             switch (type)
             {
-            case QVariant::Date:
-            case QVariant::Time:
-            case QVariant::DateTime:
             case QVariant::String:
-            case QVariant::Char:
-            case QVariant::StringList:
-            case QVariant::List:
-            case QVariant::Map:
                 fieldType = "TEXT";
                 break;
-            case QVariant::UInt:
-            case QVariant::ULongLong:
             case QVariant::Int:
-            case QVariant::LongLong:
                 fieldType = "INTEGER";
                 break;
             case QVariant::Double:
                 fieldType = "REAL";
                 break;
-            case QVariant::Bool:
-                fieldType = "INTEGER";
-                break;
             case QVariant::ByteArray:
-            case QVariant::BitArray:
                 fieldType = "BLOB";
                 break;
             default:
@@ -172,4 +173,54 @@ public:
      * @return 字符串
      */
     static QString addQuotes(const QString &value);
+    template <typename Model>
+    static QJsonObject ToJsonObject(QSharedPointer<Model> model)
+    {
+        static_assert(std::is_base_of<DBModel, Model>::value, "Model must be a subclass of DBModel");
+        QJsonObject obj;
+        const QMetaObject *metaObject = model->metaObject();
+        for (int i = 0; i < metaObject->propertyCount(); i++)
+        {
+            auto prop = metaObject->property(i);
+            auto field = prop.name();
+            auto value = prop.read(model.data());
+            obj[field] = QJsonValue::fromVariant(value);
+        }
+        return obj;
+    }
+    template <typename Model>
+    static QSharedPointer<Model> FromJsonObject(QJsonObject obj)
+    {
+        static_assert(std::is_base_of<DBModel, Model>::value, "Model must be a subclass of DBModel");
+        QPointer<Model> model(new Model());
+        const QMetaObject *metaObject = model->metaObject();
+        for (int i = 0; i < metaObject->propertyCount(); i++)
+        {
+            auto prop = metaObject->property(i);
+            auto field = prop.name();
+            auto value = obj[field].toVariant();
+            prop.write(model.data(), value);
+        }
+        return model;
+    }
+    template <typename Model>
+    static QList<QSharedPointer<Model>> FromJsonArray(QJsonArray array)
+    {
+        QList<QPointer<Model>> models;
+        for (auto obj : array)
+        {
+            models.append(FromJsonObject<Model>(obj.toObject()));
+        }
+        return models;
+    }
+    template <typename Model>
+    static QJsonArray ToJsonArray(QList<QSharedPointer<Model>> models)
+    {
+        QJsonArray array;
+        for (auto model : models)
+        {
+            array.append(ToJsonObject<Model>(model));
+        }
+        return array;
+    }
 };

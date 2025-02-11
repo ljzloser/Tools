@@ -119,6 +119,12 @@ void DeepSeekPlugin::writeConfigBeforeEvent(WriteConfigEvent &event)
         if (!(DeepSeek::verifyPresencePenalty(value.toDouble())))
             event.cancel("presence_penalty值必须在-2到2之间");
     }
+    else if (key == "blance_update_interval")
+    {
+        int interval = value.toInt();
+        if (interval < 60 || interval > 3600)
+            event.cancel("余额更新时间必须大于60小于3600");
+    }
 }
 
 /**
@@ -178,4 +184,5 @@ void DeepSeekPlugin::registerConfig()
     Double_CONFIG_REGISTER("presencePenalty", "presencePenalty", 0, 1);
     String_CONFIG_REGISTER("system_messages", "系统提示词", "You are a helpful assistant", 1);
     ComBox_CONFIG_REGISTER("seed_key", "发送快捷键", ComboxData(1, {"Enter", "Ctrl+Enter"}), 0);
+    Int_CONFIG_REGISTER("blance_update_interval", "余额更新间隔", 60, 1);
 }
