@@ -53,18 +53,26 @@ void ChatFrame::setChatText(const QString &text)
 {
     _chatText = text;
     _chatTextEdit->setMarkdown(text);
+    if (_role == Role::User)
+    {
+        QTextCursor cursor = _chatTextEdit->textCursor();
+        QTextBlockFormat textBlockFormat = cursor.blockFormat();
+        textBlockFormat.setAlignment(Qt::AlignRight);
+        cursor.mergeBlockFormat(textBlockFormat);
+        _chatTextEdit->setTextCursor(cursor);
+    }
 }
 
 void ChatFrame::addReasonerText(const QString &text)
 {
     _reasonerText += text;
-    _reasonerTextEdit->setMarkdown(_reasonerText);
+    this->setReasonerText(_reasonerText);
 }
 
 void ChatFrame::addChatText(const QString &text)
 {
     _chatText += text;
-    _chatTextEdit->setMarkdown(_chatText);
+    this->setChatText(_chatText);
 }
 
 void ChatFrame::setTokenSize(int size)
@@ -127,8 +135,6 @@ void ChatFrame::initUi()
     _dateTimeLabel->setText(_dateTime);
     _errorLabel->setAlignment(Qt::AlignCenter);
     _errorLabel->setStyleSheet("color:red;");
-    _reasonerTextEdit->setFont(QFont("Microsoft YaHei"));
-    _chatTextEdit->setFont(QFont("Microsoft YaHei"));
     if (_role == Role::User)
     {
         _dateTimeLabel->setAlignment(Qt::AlignLeft);
@@ -174,10 +180,39 @@ void ChatFrame::initUi()
     _chatTextEdit->setReadOnly(true);
     _reasonerTextEdit->setFixedHeight(0);
     _chatTextEdit->setFixedHeight(0);
+    // auto _reasonerLayout = new QHBoxLayout();
+    // auto _chatLayout = new QHBoxLayout();
+    // if (_role == Role::User)
+    // {
+    //     _reasonerLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
+    //     _reasonerLayout->addWidget(_reasonerTextEdit);
+    //     _reasonerLayout->setContentsMargins(0, 0, 0, 0);
+    //     _chatLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
+    //     _chatLayout->setContentsMargins(0, 0, 0, 0);
+    //     _chatLayout->addWidget(_chatTextEdit);
+    // }
+    // else
+    // {
+    //     _reasonerLayout->addWidget(_reasonerTextEdit);
+    //     _reasonerLayout->setContentsMargins(0, 0, 0, 0);
+    //     _reasonerLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
+    //     _chatLayout->setContentsMargins(0, 0, 0, 0);
+    //     _chatLayout->addWidget(_chatTextEdit);
+    //     _chatLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
+    // }
+
     _layout->addWidget(_reasonerTextEdit);
     _layout->addWidget(_chatTextEdit);
     _layout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
     this->setLayout(_layout);
+    if (this->role() == "user")
+    {
+        this->setStyleSheet("QTextEdit{background-color: #E7F8FF; border-radius: 10px;} ");
+    }
+    else
+    {
+        this->setStyleSheet("QTextEdit{background-color: #F2F2F2; border-radius: 10px;} ");
+    }
 }
 
 void ChatFrame::initConnect()

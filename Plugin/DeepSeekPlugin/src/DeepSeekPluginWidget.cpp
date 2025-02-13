@@ -99,6 +99,7 @@ void DeepSeekWidget::initUi()
     ui->chatScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ui->chatScrollArea->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->chatListWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    _mainLayout->setSpacing(20);
     // 多选
     ui->chatListWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
     ui->textEdit->setPlaceholderText("请输入你的问题后按下Ctrl+Enter来进行提问!");
