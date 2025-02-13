@@ -112,7 +112,12 @@
         "qnetworkrequest": "cpp",
         "qmutex": "cpp",
         "iostream": "cpp",
-        "qwebengineview": "cpp"
+        "qwebengineview": "cpp",
+        "bitset": "cpp",
+        "complex": "cpp",
+        "expected": "cpp",
+        "fstream": "cpp",
+        "qresource": "cpp"
     },
     "commentTranslate.targetLanguage": "zh-CN",
     "commentTranslate.hover.enabled": true

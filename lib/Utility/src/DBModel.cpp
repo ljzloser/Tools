@@ -91,42 +91,6 @@ void DBModel::Load()
     }
 }
 
-void DBModelHelper::DeleteModels(DBModelList models)
-{
-    if (models.size() == 0)
-        return;
-    LSqlExecutor excuteSql(QApplication::applicationDirPath() + "/config.db");
-    auto obj = models.first()->metaObject();
-    QString tableName = obj->className();
-    QStringList ids;
-    for (auto model : models)
-    {
-        ids.append(QString::number(model->id_get()));
-    }
-    QString sql = QString("DELETE FROM %1 WHERE id IN (%2)").arg(tableName).arg(ids.join(","));
-    excuteSql.executeNonQuery(sql);
-}
-
-void DBModelHelper::UpdateModels(DBModelList models)
-{
-    if (models.size() == 0)
-        return;
-    for (auto model : models)
-    {
-        model->Update();
-    }
-}
-
-void DBModelHelper::InsertModels(DBModelList models)
-{
-    if (models.size() == 0)
-        return;
-    for (auto model : models)
-    {
-        model->Insert();
-    }
-}
-
 QString DBModelHelper::valueToString(const QVariant &value, QVariant::Type type)
 {
     switch (type)

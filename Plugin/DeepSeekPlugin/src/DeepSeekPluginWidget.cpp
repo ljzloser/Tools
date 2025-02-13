@@ -10,6 +10,7 @@
 #include <QUuid>
 #include "DeepSeekModel.h"
 #include <QFileDialog>
+
 DeepSeekWidget::DeepSeekWidget(Logger *logger, TConfig *config, QWidget *parent)
     : QWidget(parent), ui(new Ui::DeepSeekPluginWidget()), _config(config), _logger(logger)
 {
@@ -94,6 +95,7 @@ void DeepSeekWidget::initUi()
 #pragma endregion 初始化分割器的尺寸
     _mainLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
     ui->chatScrollArea->setWidget(_mainWidget);
+    ui->chatScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ui->chatScrollArea->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->chatListWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     // 多选
@@ -268,8 +270,11 @@ void DeepSeekWidget::newChat()
 
 void DeepSeekWidget::loadChat()
 {
+    this->newChat();
     ui->chatListWidget->clear();
-    auto models = DBModelHelper::Fliter<DeepSeekModel>("isLegal = 1 order by datetime desc");
+    auto models = DBModelHelper::Fliter<DeepSeekModel>("isLegal = 1");
+    std::sort(models.begin(), models.end(), [](QSharedPointer<DeepSeekModel> a, QSharedPointer<DeepSeekModel> b) -> bool
+              { return a->datetime_get() > b->datetime_get(); });
     for (auto model : models)
     {
         auto identifier = model->identifier_get();
@@ -297,9 +302,11 @@ void DeepSeekWidget::showListWidgetContextMenu(const QPoint &pos)
     auto newChatAction = menu.addAction("新聊天");
     auto deleteChatAction = menu.addAction("删除");
     auto exportAction = menu.addAction("导出");
+    auto leadAction = menu.addAction("导入");
     connect(deleteChatAction, &QAction::triggered, this, &DeepSeekWidget::deleteChat);
     connect(newChatAction, &QAction::triggered, this, &DeepSeekWidget::newChat);
     connect(exportAction, &QAction::triggered, this, &DeepSeekWidget::exportChat);
+    connect(leadAction, &QAction::triggered, this, &DeepSeekWidget::leadChat);
     menu.exec(QCursor::pos());
 }
 
@@ -399,6 +406,27 @@ void DeepSeekWidget::exportChat()
         }
         QMessageBox::information(this, "提示", QString("导出成功: %1").arg(fileName));
         _logger->info(QString("Export Chat Success: %1").arg(fileName));
+    }
+}
+
+void DeepSeekWidget::leadChat()
+{
+    auto fileName = QFileDialog::getOpenFileName(this, "导入聊天内容", QApplication::applicationDirPath(), "JSON(*.json)");
+    if (!fileName.isEmpty())
+    {
+        QFile file(fileName);
+        if (file.open(QIODevice::ReadOnly))
+        {
+            auto json = file.readAll();
+            auto doc = QJsonDocument::fromJson(json);
+            auto array = doc.array();
+            auto models = DBModelHelper::FromJsonArray<DeepSeekModel>(array);
+            for (auto model : models)
+                model->identifier_set(QUuid::createUuid().toString());
+            DBModelHelper::InsertModels(models);
+            this->loadChat();
+            QMessageBox::information(this, "提示", QString("导入成功: %1").arg(fileName));
+        }
     }
 }
 

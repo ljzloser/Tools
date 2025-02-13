@@ -51,4 +51,5 @@ private slots:
     void rollLast();
     void updateBalance(DeepSeek::Balance balance);
     void exportChat();
+    void leadChat();
 };

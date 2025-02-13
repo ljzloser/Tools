@@ -4,6 +4,7 @@ add_subdirectory(LClass)
 add_subdirectory(Utility)
 add_subdirectory(spdlog)
 add_subdirectory(DeepSeek)
+# add_subdirectory(cmark)
 set_target_properties(
     spdlog
     qhotkey
@@ -11,6 +12,7 @@ set_target_properties(
     LCore
     LWidget
     DeepSeek
+    # cmark
     PROPERTIES
     FOLDER "lib"
 )

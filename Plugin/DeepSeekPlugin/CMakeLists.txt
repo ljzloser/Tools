@@ -19,6 +19,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include
     ${Lib_DIR}/spdlog/include/spdlog
     ${Lib_DIR}/Utility/include
     ${Lib_DIR}/DeepSeek/include
+    # ${Lib_DIR}/cmake/src
 )
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${PROJECT_SOURCE_DIR}/ui)
 FILE(GLOB_RECURSE RC_FILES ${PROJECT_SOURCE_DIR}/res/*.rc) 
@@ -50,6 +51,7 @@ target_link_libraries(DeepSeekPlugin PRIVATE Qt${QT_VERSION_MAJOR}::Core
   spdlog
   Utility
   DeepSeek
+  # cmark
 )
 
 target_compile_definitions(DeepSeekPlugin PRIVATE DeepSeekPlugin_LIBRARY)

@@ -76,15 +76,53 @@ public:
      * @brief 更新模型
      * @param models
      */
-    static void UpdateModels(DBModelList models);
+    template <typename Model>
+    static void UpdateModels(QList<QSharedPointer<Model>> models)
+    {
+        DBModelHelper::verifyModel<Model>();
+        if (models.size() == 0)
+            return;
+        for (auto model : models)
+        {
+            model->Update();
+        }
+    }
+
     /**
      * @brief 插入模型
      */
-    static void InsertModels(DBModelList models);
+    template <typename Model>
+    static void InsertModels(QList<QSharedPointer<Model>> models)
+    {
+        DBModelHelper::verifyModel<Model>();
+        if (models.size() == 0)
+            return;
+        for (auto model : models)
+        {
+            model->Insert();
+        }
+    }
     /**
      * @brief 删除模型
      */
-    static void DeleteModels(DBModelList models);
+    template <typename Model>
+    static void DeleteModels(QList<QSharedPointer<Model>> models)
+    {
+        DBModelHelper::verifyModel<Model>();
+        if (models.size() == 0)
+            return;
+        LSqlExecutor excuteSql(QApplication::applicationDirPath() + "/config.db");
+        const QMetaObject *obj = models.first()->metaObject();
+        QString tableName = obj->className();
+        QStringList ids;
+        for (auto model : models)
+        {
+            ids.append(QString::number(model->id_get()));
+        }
+        QString sql = QString("DELETE FROM %1 WHERE id IN (%2)").arg(tableName).arg(ids.join(","));
+        excuteSql.executeNonQuery(sql);
+    }
+
     /**
      * @brief 根据条件过滤模型
      * @tparam Model DBModel 的子类
@@ -193,7 +231,7 @@ public:
     static QSharedPointer<Model> FromJsonObject(QJsonObject obj)
     {
         DBModelHelper::verifyModel<Model>();
-        QPointer<Model> model(new Model());
+        QSharedPointer<Model> model(new Model());
         const QMetaObject *metaObject = model->metaObject();
         for (int i = 0; i < metaObject->propertyCount(); i++)
         {
@@ -207,7 +245,7 @@ public:
     template <typename Model>
     static QList<QSharedPointer<Model>> FromJsonArray(QJsonArray array)
     {
-        QList<QPointer<Model>> models;
+        QList<QSharedPointer<Model>> models;
         for (auto obj : array)
         {
             models.append(FromJsonObject<Model>(obj.toObject()));

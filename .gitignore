@@ -4,3 +4,4 @@
 /plugin/TestPlugin/
 CMakeLists.txt.user
 *.py
+lib/cmark

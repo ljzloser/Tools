@@ -42,7 +42,6 @@ void TestConfig::writeConfig()
     // 2. 测试 key 存在且类型匹配
     QVariant newDateTime = QDateTime::fromString("2024-12-03 12:00:00", "yyyy-MM-dd hh:mm:ss");
     bool writeResult1 = config->write("DateTime", newDateTime, message);
-    qDebug() << message;
     QCOMPARE(writeResult1, true);                                       // 更新应该成功
     QCOMPARE(config->read("DateTime").value.toDateTime(), newDateTime); // 验证值已更新
 
@@ -86,13 +85,10 @@ void TestConfig::deepSeek()
     connect(deepSeek, &DeepSeek::replyFinished, [&](QNetworkReply::NetworkError error, int httpStatusCode, const QString &errorString)
             { std::cout << "\nFinished" << std::endl;
                 auto usage = deepSeek->lastUsage();
-                qDebug() << usage.json;
-                qDebug() << "code" << httpStatusCode << "error" << errorString;
                 loop.exit(); });
     connect(deepSeek, &DeepSeek::replyBalance, [&](DeepSeek::Balance balance)
             { qDebug() << balance.toString(); });
     deepSeek->queryBalance();
-    qDebug() << deepSeek->models();
     deepSeek->seedMessage({}, "你好");
     if (deepSeek->model() == "deepseek-reasoner")
         std::cout << "think" << std::endl;

@@ -127,6 +127,8 @@ void ChatFrame::initUi()
     _dateTimeLabel->setText(_dateTime);
     _errorLabel->setAlignment(Qt::AlignCenter);
     _errorLabel->setStyleSheet("color:red;");
+    _reasonerTextEdit->setFont(QFont("Microsoft YaHei"));
+    _chatTextEdit->setFont(QFont("Microsoft YaHei"));
     if (_role == Role::User)
     {
         _dateTimeLabel->setAlignment(Qt::AlignLeft);

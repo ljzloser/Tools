@@ -386,7 +386,6 @@ bool LWidget::nativeEvent(const QByteArray &eventType, void *message, long *resu
 			long x = GET_X_LPARAM(msg->lParam); // 获取鼠标x坐标
 			long y = GET_Y_LPARAM(msg->lParam); // 获取鼠标y坐标
 			QPoint pos = mapFromGlobal(QPoint(x, y));
-			qDebug() << pos;
 			int padding = _info.edgeSize; // 鼠标距离窗口边缘的距离
 			// 判断当前鼠标位置在哪个区域
 			bool left = pos.x() < padding;
