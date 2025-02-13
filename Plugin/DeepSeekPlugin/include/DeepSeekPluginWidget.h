@@ -52,4 +52,5 @@ private slots:
     void updateBalance(DeepSeek::Balance balance);
     void exportChat();
     void leadChat();
+    void reNameChat();
 };

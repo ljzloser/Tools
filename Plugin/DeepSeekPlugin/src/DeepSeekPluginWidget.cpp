@@ -10,6 +10,7 @@
 #include <QUuid>
 #include "DeepSeekModel.h"
 #include <QFileDialog>
+#include <QInputDialog>
 
 DeepSeekWidget::DeepSeekWidget(Logger *logger, TConfig *config, QWidget *parent)
     : QWidget(parent), ui(new Ui::DeepSeekPluginWidget()), _config(config), _logger(logger)
@@ -301,10 +302,13 @@ void DeepSeekWidget::showListWidgetContextMenu(const QPoint &pos)
     QMenu menu(this);
     auto newChatAction = menu.addAction("新聊天");
     auto deleteChatAction = menu.addAction("删除");
+    auto reNameAction = menu.addAction("重命名");
     auto exportAction = menu.addAction("导出");
     auto leadAction = menu.addAction("导入");
+
     connect(deleteChatAction, &QAction::triggered, this, &DeepSeekWidget::deleteChat);
     connect(newChatAction, &QAction::triggered, this, &DeepSeekWidget::newChat);
+    connect(reNameAction, &QAction::triggered, this, &DeepSeekWidget::reNameChat);
     connect(exportAction, &QAction::triggered, this, &DeepSeekWidget::exportChat);
     connect(leadAction, &QAction::triggered, this, &DeepSeekWidget::leadChat);
     menu.exec(QCursor::pos());
@@ -428,6 +432,22 @@ void DeepSeekWidget::leadChat()
             QMessageBox::information(this, "提示", QString("导入成功: %1").arg(fileName));
         }
     }
+}
+
+void DeepSeekWidget::reNameChat()
+{
+    auto item = ui->chatListWidget->currentItem();
+    if (!item)
+        return;
+    auto identifier = item->data(Qt::UserRole).toString();
+    auto model = DBModelHelper::Fliter<DeepSeekModel>(QString("identifier = '%1'").arg(identifier)).first();
+    auto chat_name = model->chat_name_get();
+    auto ret = QInputDialog::getText(this, "重命名", "新名称:", QLineEdit::Normal, chat_name);
+    if (ret.isEmpty())
+        return;
+    model->chat_name_set(ret);
+    model->Update();
+    this->loadChat();
 }
 
 ChatFrame *DeepSeekWidget::lastChatFrame()
