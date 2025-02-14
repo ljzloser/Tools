@@ -4,7 +4,7 @@
 #include "TemplatePlugin_global.h"
 #include "AbstractPlugin.h"
 #include "config.h"
-
+#include "TemplateModel.h"
 
 class TemplatePlugin_EXPORT TemplatePlugin : public AbstractPlugin
 {
