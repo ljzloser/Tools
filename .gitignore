@@ -5,3 +5,4 @@
 CMakeLists.txt.user
 *.py
 lib/cmark
+InstallPackage
