@@ -48,7 +48,23 @@ public:
                 reasoning_tokens = obj.value("completion_tokens_details").toObject().value("reasoning_tokens").toDouble();
             if (obj.contains("prompt_tokens_details"))
                 cached_tokens = obj.value("prompt_tokens_details").toObject().value("cached_tokens").toDouble();
+            if (obj.contains("reasoning_tokens"))
+                reasoning_tokens = obj.value("reasoning_tokens").toDouble();
+            if (obj.contains("cached_tokens"))
+                cached_tokens = obj.value("cached_tokens").toDouble();
             json = obj;
+        };
+        QJsonObject toJson()
+        {
+            auto obj = QJsonObject{
+                {"prompt_tokens", prompt_tokens},
+                {"completion_tokens", completion_tokens},
+                {"total_tokens", total_tokens},
+                {"prompt_cache_hit_tokens", prompt_cache_hit_tokens},
+                {"prompt_cache_miss_tokens", prompt_cache_miss_tokens},
+                {"reasoning_tokens", reasoning_tokens},
+                {"cached_tokens", cached_tokens}};
+            return obj;
         };
         Usage() {};
     };
@@ -203,6 +219,11 @@ signals:
      * @brief 当前余额信号
      */
     void replyBalance(Balance balance);
+    /**
+     * @brief 原始报文数据接受信号
+     * @param data  原始数据
+     */
+    void replyByteArray(const QByteArray &data);
 
 private:
     QString _token{QString()};

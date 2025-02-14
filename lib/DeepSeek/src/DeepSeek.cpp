@@ -58,8 +58,9 @@ void DeepSeek::readStream()
         return;
     if (_reply->error() != QNetworkReply::NoError)
         return;
-    QString text = _reply->readAll();
-    QStringList textList = text.split("data: ");
+    auto data = _reply->readAll();
+    QStringList textList = QString::fromUtf8(data).split("data: ");
+    emit replyByteArray(data);
     for (const auto &t : textList)
     {
         QJsonDocument doc = QJsonDocument::fromJson(t.toUtf8());
@@ -78,6 +79,7 @@ void DeepSeek::replyFinished_()
     _isRequesting = false;
     auto code = _reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     ErrorCode errorCode = static_cast<ErrorCode>(code);
+    auto data = _reply->readAll();
     if (errorCode != NoError)
     {
         emit replyFinished(QNetworkReply::NoError, code, errorCodeToString(errorCode));
@@ -95,13 +97,14 @@ void DeepSeek::replyFinished_()
     }
     if (!_isStream)
     {
-        QJsonDocument doc = QJsonDocument::fromJson(_reply->readAll());
+        QJsonDocument doc = QJsonDocument::fromJson(data);
         if (doc.isNull() || doc.isEmpty())
             return;
         auto obj = doc.object();
         if (obj.contains("usage"))
             _usage = Usage(obj.value("usage").toObject());
         emit replyMessage(Message(obj));
+        emit replyByteArray(data);
     }
     emit replyFinished(QNetworkReply::NoError, code, "");
 end:

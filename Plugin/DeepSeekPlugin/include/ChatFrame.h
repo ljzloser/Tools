@@ -10,6 +10,7 @@
 #include <QWidget>
 #include <QPlainTextEdit>
 #include <QMovie>
+#include <DeepSeek.h>
 
 enum class Role
 {
@@ -87,7 +88,8 @@ public slots:
     QString dateTime() const { return _dateTime; }
     void setDateTime(const QString &dateTime);
     void setErrorText(const QString &text);
-
+    DeepSeek::Usage usage() { return _usage; }
+    void setUsage(DeepSeek::Usage usage);
 signals:
     void stopRequestSignal();
 
@@ -113,4 +115,5 @@ private:
     QString _dateTime;
     QLabel *_dateTimeLabel = new QLabel(this);
     QLabel *_errorLabel = new QLabel(this);
+    DeepSeek::Usage _usage;
 };

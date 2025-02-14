@@ -16,6 +16,9 @@ DeepSeekWidget::DeepSeekWidget(Logger *logger, TConfig *config, QWidget *parent)
     : QWidget(parent), ui(new Ui::DeepSeekPluginWidget()), _config(config), _logger(logger)
 {
     DBModelHelper::Create<DeepSeekModel>();
+    // 清除所有不合法的聊天记录
+    auto models = DBModelHelper::Fliter<DeepSeekModel>("isLegal = 0");
+    DBModelHelper::DeleteModels(models);
     ui->setupUi(this);
     deepSeek = new DeepSeek(_config->read("token").valueString(), this);
     deepSeek->setSystemMessage(_config->read("system_messages").valueString());
@@ -189,7 +192,7 @@ void DeepSeekWidget::finished(QNetworkReply::NetworkError error, int httpStatusC
     if (widget)
     {
         ChatFrame *chatFrame = static_cast<ChatFrame *>(widget);
-        chatFrame->setTokenSize(deepSeek->lastUsage().total_tokens);
+        chatFrame->setUsage(deepSeek->lastUsage());
         chatFrame->setErrorText(errorString);
         chatFrame->stopLoading();
     }
@@ -202,7 +205,7 @@ void DeepSeekWidget::finished(QNetworkReply::NetworkError error, int httpStatusC
             QJsonObject chat{{"role", chatFrame->role()},
                              {"content", chatFrame->chatText()},
                              {"reasoning_content", chatFrame->reasonerText()},
-                             {"total_tokens", chatFrame->tokenSize()},
+                             {"usage", chatFrame->usage().toJson()},
                              {"datetime", chatFrame->dateTime()}};
             array.append(chat);
         }
@@ -332,7 +335,8 @@ void DeepSeekWidget::loadChatMessage(QListWidgetItem *item)
         auto content = obj.value("content").toString();
         auto reasoning_content = obj.value("reasoning_content").toString();
         auto datetime = obj.value("datetime").toString();
-        auto total_tokens = obj.value("total_tokens").toInt();
+        auto usage = DeepSeek::Usage(obj.value("usage").toObject());
+
         auto chatFrame = new ChatFrame(stringToRole(role), nullptr);
         if (!content.isEmpty())
         {
@@ -342,7 +346,7 @@ void DeepSeekWidget::loadChatMessage(QListWidgetItem *item)
         {
             chatFrame->addReasonerText(reasoning_content);
         }
-        chatFrame->setTokenSize(total_tokens);
+        chatFrame->setUsage(usage);
         chatFrame->setDateTime(datetime);
         _mainLayout->insertWidget(_mainLayout->count() - 1, chatFrame);
     }
@@ -376,6 +380,16 @@ void DeepSeekWidget::rollLast()
 void DeepSeekWidget::updateBalance(DeepSeek::Balance balance)
 {
     ui->balanceLabel->setText(QString("当前余额: %1 元").arg(balance.total_balance));
+    ui->balanceLabel->setToolTip(QString(R"(是否可用：%1
+货币：%2
+总余额：%3
+未过期赠金余额：%4
+充值余额：%5)")
+                                     .arg(balance.is_available ? "是" : "否")
+                                     .arg(balance.currency)
+                                     .arg(balance.total_balance)
+                                     .arg(balance.granted_balance)
+                                     .arg(balance.topped_up_balance));
     _logger->info(balance.toString());
 }
 

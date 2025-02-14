@@ -108,6 +108,27 @@ void ChatFrame::setErrorText(const QString &text)
     _errorLabel->setText(text);
 }
 
+void ChatFrame::setUsage(DeepSeek::Usage usage)
+{
+    this->_tokenLabel->setToolTip(QString(
+                                      R"(prompt所包含的token:%1
+prompt命中上下文缓存的token:%2
+prompt未命中上下文缓存的token:%3
+上下文缓存中获取的token:%7
+completion产生的token:%4
+思考的token:%6
+所有的token:%5)")
+                                      .arg(usage.prompt_tokens)
+                                      .arg(usage.prompt_cache_hit_tokens)
+                                      .arg(usage.prompt_cache_miss_tokens)
+                                      .arg(usage.completion_tokens)
+                                      .arg(usage.total_tokens)
+                                      .arg(usage.reasoning_tokens)
+                                      .arg(usage.cached_tokens));
+    _usage = usage;
+    this->setTokenSize(usage.total_tokens);
+}
+
 void ChatFrame::initUi()
 {
     // 设置边框
