@@ -157,6 +157,7 @@ void DeepSeek::seedMessage(const QList<Message> &oldMessages, const QString &mes
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader("Accept", "application/json");
     request.setRawHeader("Authorization", ("Bearer " + _token).toUtf8());
+    request.setTransferTimeout(10000);
     QJsonObject obj;
     obj.insert("model", _model);
     obj.insert("frequency_penalty", _frequency_penalty);

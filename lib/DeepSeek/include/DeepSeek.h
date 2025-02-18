@@ -108,6 +108,13 @@ public:
 
     QStringList stopStrings() const { return _stopStrings; }
 
+    /**
+     * @brief 获取当前温度值。
+     *
+     * 该函数返回一个双精度浮点数，表示当前的温度。
+     *
+     * @return 当前温度值。
+     */
     double temperature() const { return _temperature; }
 
     double topP() const { return _top_p; }
