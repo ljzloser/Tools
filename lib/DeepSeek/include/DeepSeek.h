@@ -5,6 +5,7 @@
 #include "DeepSeek_global.h"
 #include <QJsonObject>
 #include <QMutex>
+
 class DEEPSEEK_EXPORT DeepSeek : public QObject
 {
     Q_OBJECT
@@ -17,6 +18,14 @@ public:
         double granted_balance = 0.0;   // 未过期的赠金余额
         double topped_up_balance = 0.0; // 充值余额
         Balance() {};
+        /**
+         * @brief 将 Balance 结构体的信息转换为字符串形式。
+         *
+         * 该函数会将 Balance 结构体中的各个成员变量的值组合成一个字符串，
+         * 方便输出和调试。
+         *
+         * @return 包含 Balance 结构体信息的字符串。
+         */
         QString toString()
         {
             return QString("is_available: %1 currency: %2 total_balance: %3 granted_balance: %4 topped_up_balance: %5")
