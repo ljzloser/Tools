@@ -11,6 +11,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network Sql Xml )
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network Sql Xml )
+find_package(jsoncpp CONFIG REQUIRED)
+
 set(Lib_DIR ${PROJECT_SOURCE_DIR}/../lib)
 include_directories(${PROJECT_SOURCE_DIR}/include
     ${Lib_DIR}/QHotkey/QHotkey
@@ -65,6 +67,7 @@ target_link_libraries(Tools PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
     LCore
     Utility
     spdlog
+    jsoncpp_lib
     Qt${QT_VERSION_MAJOR}::Network
     Qt${QT_VERSION_MAJOR}::Sql
     Qt${QT_VERSION_MAJOR}::Xml

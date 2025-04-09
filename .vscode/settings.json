@@ -120,5 +120,9 @@
         "qresource": "cpp"
     },
     "commentTranslate.targetLanguage": "zh-CN",
-    "commentTranslate.hover.enabled": true
+    "commentTranslate.hover.enabled": true,
+    "cmake.configureSettings": {
+        "CMAKE_TOOLCHAIN_FILE": "E:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+    }
 }
