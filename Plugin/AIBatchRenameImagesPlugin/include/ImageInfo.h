@@ -4,6 +4,7 @@
 class ImageInfo
 {
 public:
+    ImageInfo();
     ImageInfo(const QString &filePath, int fileSize = 1);
     ~ImageInfo();
     QString fileDir() const;
@@ -12,6 +13,10 @@ public:
     QByteArray base64Data() const;
     void setNewFileName(const QString &newFileName);
     bool isValid() const;
+    QString message() const;
+    void setMessage(const QString &message);
+    QString prompt() const;
+    void setPrompt(const QString &prompt);
 
 private:
     QString _fileDir;
@@ -19,4 +24,6 @@ private:
     QString _newFileName;
     QByteArray _base64Data;
     int _fileSize;
+    QString _message;
+    QString _prompt;
 };

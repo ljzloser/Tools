@@ -45,7 +45,6 @@ public:
     // 清除缓存
     void clearCache();
 
-protected:
     // 当文件变更时清除缓存
     bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 

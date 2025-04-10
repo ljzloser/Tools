@@ -135,4 +135,6 @@ void AIBatchRenameImagesPlugin::readConfigAfterEvent(ReadConfigEvent &event)
 void AIBatchRenameImagesPlugin::registerConfig()
 {
     AbstractPlugin::registerConfig();
+    ComBox_CONFIG_REGISTER("AIModel", "AI模型", ComboxData(0, {"qwen-vl-max-latest"}), true);
+    String_CONFIG_REGISTER("AIToken", "Token", "", true);
 }

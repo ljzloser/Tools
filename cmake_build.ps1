@@ -7,7 +7,8 @@ try {
     if (-not $cmakeVersion) {
         throw "CMake is not installed or not in PATH."
     }
-} catch {
+}
+catch {
     Write-Host "CMake 未安装或不在 PATH 中。"
     Pause
     exit 1
@@ -35,7 +36,8 @@ $cmakeCommand = "cmake -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE --no-warn-unuse
 try {
     # 执行 CMake 命令并捕获错误
     Invoke-Expression $cmakeCommand
-} catch {
+}
+catch {
     Write-Host "CMake 命令执行失败，错误信息: $_"
     Pause
     exit 1
